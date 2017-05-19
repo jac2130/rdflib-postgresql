@@ -56,6 +56,7 @@ from rdfextras.store.AbstractSQLStore import (
 from rdflib.py3compat import PY3
 from rdflib.store import NO_STORE, VALID_STORE
 import logging
+from functools import reduce
 
 
 def bb(u):
@@ -112,7 +113,7 @@ def GetConfigurationString(configuration):
         if name in configDict:
             dsn[name] = configDict.get(name)
 
-    dsn = ('%s=%s' % item for item in dsn.iteritems())
+    dsn = ('%s=%s' % item for item in list(dsn.items()))
     return ' '.join(dsn)
 
 
@@ -332,7 +333,7 @@ class PostgreSQL(AbstractSQLStore):
 
     # copied and pasted primarily to use the local unionSELECT instead
     # of the one provided by AbstractSQLStore
-    def triples(self, subject, predicate, obj, context=None):
+    def triples(self, xxx_todo_changeme, context=None):
         """
         A generator over all the triples matching pattern. Pattern can
         be any objects for comparing against nodes in the store, for
@@ -351,6 +352,7 @@ class PostgreSQL(AbstractSQLStore):
         FIXME:  These union all selects *may* be further optimized by joins
 
         """
+        (subject, predicate, obj) = xxx_todo_changeme
         quoted_table = "%s_quoted_statements" % self._internedId
         asserted_table = "%s_asserted_statements" % self._internedId
         asserted_type_table = "%s_type_statements" % self._internedId
@@ -796,17 +798,17 @@ class PostgreSQL(AbstractSQLStore):
                             for dummy in itertools.repeat(None, 5)]
                 tag = '$%s$' % ''.join(tag)
                 try:
-                    return u"%s%s%s" % (tag, item.decode('utf-8'), tag)
+                    return "%s%s%s" % (tag, item.decode('utf-8'), tag)
                 except:
-                    return u"%s%s%s" % (tag, item, tag)
+                    return "%s%s%s" % (tag, item, tag)
         if not params:
             # sys.stderr.write("\n%s\n" % qStr)
-            cursor.execute(unicode(qStr))
+            cursor.execute(str(qStr))
         elif paramList:
             raise Exception("Not supported!")
         else:
             params = tuple([prepitem(item) for item in params])
-            querystr = unicode(qStr).replace('"', "'")
+            querystr = str(qStr).replace('"', "'")
             qs = querystr % params
             # sys.stderr.write("\n%s\n" % qs)
             cursor.execute(qs)
@@ -858,8 +860,8 @@ class PostgreSQL(AbstractSQLStore):
         else:
             #   Commence unicode black magic
             import types
-            if not isinstance(cmd, types.UnicodeType):
-                cmd = unicode(cmd, 'ascii')
+            if not isinstance(cmd, str):
+                cmd = str(cmd, 'ascii')
             return cmd.encode('utf-8')
 
     def buildSubjClause(self, subject, tableName):
