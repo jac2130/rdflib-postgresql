@@ -28,11 +28,11 @@
 ## (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 ## OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-try:
-    import psycopg2
-    has_psycopg2 = True
-except ImportError:
-    has_psycopg2 = False
+
+import psycopg2
+has_psycopg2 = True
+#except ImportError:
+#    has_psycopg2 = False
 import sys
 import itertools
 import random
@@ -332,7 +332,7 @@ class PostgreSQL(AbstractSQLStore):
 
     # copied and pasted primarily to use the local unionSELECT instead
     # of the one provided by AbstractSQLStore
-    def triples(self, subject, predicate, obj, context=None):
+    def triples(self, clause, context = None):
         """
         A generator over all the triples matching pattern. Pattern can
         be any objects for comparing against nodes in the store, for
@@ -351,6 +351,7 @@ class PostgreSQL(AbstractSQLStore):
         FIXME:  These union all selects *may* be further optimized by joins
 
         """
+        subject, predicate, obj=clause
         quoted_table = "%s_quoted_statements" % self._internedId
         asserted_table = "%s_asserted_statements" % self._internedId
         asserted_type_table = "%s_type_statements" % self._internedId
